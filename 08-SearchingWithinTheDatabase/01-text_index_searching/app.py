@@ -17,21 +17,21 @@ app.secret_key = os.environ.get("SECRET_KEY")
 
 mongo = PyMongo(app)
 
-
+# Display all items list
 @app.route("/")
 @app.route("/get_tasks")
 def get_tasks():
     tasks = list(mongo.db.tasks.find())
     return render_template("tasks.html", tasks=tasks)
 
-
+# Search function
 @app.route("/search", methods=["GET", "POST"])
 def search():
     query = request.form.get("query")
     tasks = list(mongo.db.tasks.find({"$text": {"$search": query}}))
     return render_template("tasks.html", tasks=tasks)
 
-
+# Register new user
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -56,7 +56,7 @@ def register():
 
     return render_template("register.html")
 
-
+# Login screen
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -85,7 +85,7 @@ def login():
 
     return render_template("login.html")
 
-
+# Show user profile
 @app.route("/profile/<username>", methods=["GET", "POST"])
 def profile(username):
     # grab the session user's username from db
@@ -97,7 +97,7 @@ def profile(username):
 
     return redirect(url_for("login"))
 
-
+# logout screen
 @app.route("/logout")
 def logout():
     # remove user from session cookie
@@ -105,7 +105,7 @@ def logout():
     session.pop("user")
     return redirect(url_for("login"))
 
-
+# add item screen
 @app.route("/add_task", methods=["GET", "POST"])
 def add_task():
     if request.method == "POST":
@@ -125,7 +125,7 @@ def add_task():
     categories = mongo.db.categories.find().sort("category_name", 1)
     return render_template("add_task.html", categories=categories)
 
-
+# edit items
 @app.route("/edit_task/<task_id>", methods=["GET", "POST"])
 def edit_task(task_id):
     if request.method == "POST":
@@ -139,26 +139,27 @@ def edit_task(task_id):
             "created_by": session["user"]
         }
         mongo.db.tasks.update({"_id": ObjectId(task_id)}, submit)
-        flash("Task Successfully Updated")
+        flash("Item Successfully Added!")
 
     task = mongo.db.tasks.find_one({"_id": ObjectId(task_id)})
     categories = mongo.db.categories.find().sort("category_name", 1)
     return render_template("edit_task.html", task=task, categories=categories)
 
-
+# delete tasks
 @app.route("/delete_task/<task_id>")
 def delete_task(task_id):
     mongo.db.tasks.remove({"_id": ObjectId(task_id)})
     flash("Task Successfully Deleted")
     return redirect(url_for("get_tasks"))
 
-
+# show and edit categories screen
 @app.route("/get_categories")
 def get_categories():
     categories = list(mongo.db.categories.find().sort("category_name", 1))
     return render_template("categories.html", categories=categories)
 
 
+# add categories screen
 @app.route("/add_category", methods=["GET", "POST"])
 def add_category():
     if request.method == "POST":
@@ -171,7 +172,7 @@ def add_category():
 
     return render_template("add_category.html")
 
-
+# edit category screen
 @app.route("/edit_category/<category_id>", methods=["GET", "POST"])
 def edit_category(category_id):
     if request.method == "POST":
@@ -185,6 +186,7 @@ def edit_category(category_id):
     category = mongo.db.categories.find_one({"_id": ObjectId(category_id)})
     return render_template("edit_category.html", category=category)
 
+# delete category screen
 
 @app.route("/delete_category/<category_id>")
 def delete_category(category_id):
